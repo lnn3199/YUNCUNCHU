@@ -105,7 +105,10 @@ $(md5):		$(CGI_SRC_PATH)/md5_cgi.o \
 			$(COMMON_PATH)/cJSON.o \
 			$(COMMON_PATH)/deal_mysql.o \
 			$(COMMON_PATH)/redis_op.o  \
-			$(COMMON_PATH)/cfg.o
+			$(COMMON_PATH)/cfg.o \
+			$(COMMON_PATH)/content_store.o \
+			$(COMMON_PATH)/chunk_store.o \
+			$(COMMON_PATH)/md5.o
 	$(CC) $^ -o $@ $(LIBS)
 # 上传
 $(upload):$(CGI_SRC_PATH)/upload_cgi.o \
@@ -114,7 +117,10 @@ $(upload):$(CGI_SRC_PATH)/upload_cgi.o \
 		  $(COMMON_PATH)/cJSON.o \
 		  $(COMMON_PATH)/deal_mysql.o \
 		  $(COMMON_PATH)/redis_op.o  \
-		  $(COMMON_PATH)/cfg.o
+		  $(COMMON_PATH)/cfg.o \
+			$(COMMON_PATH)/content_store.o \
+			$(COMMON_PATH)/chunk_store.o \
+			$(COMMON_PATH)/md5.o
 	$(CC) $^ -o $@ $(LIBS)
 # 用户列表展示
 $(myfiles):	$(CGI_SRC_PATH)/myfiles_cgi.o \
@@ -133,7 +139,9 @@ $(dealfile):$(CGI_SRC_PATH)/dealfile_cgi.o \
 			$(COMMON_PATH)/deal_mysql.o \
 			$(COMMON_PATH)/redis_op.o  \
 			$(COMMON_PATH)/cfg.o \
-			$(COMMON_PATH)/md5.o
+			$(COMMON_PATH)/md5.o \
+			$(COMMON_PATH)/content_store.o \
+			$(COMMON_PATH)/chunk_store.o
 	$(CC) $^ -o $@ $(LIBS)
 # 共享文件列表展示
 $(sharefiles):	$(CGI_SRC_PATH)/sharefiles_cgi.o \
@@ -151,7 +159,10 @@ $(dealsharefile):	$(CGI_SRC_PATH)/dealsharefile_cgi.o \
 			$(COMMON_PATH)/cJSON.o \
 			$(COMMON_PATH)/deal_mysql.o \
 			$(COMMON_PATH)/redis_op.o  \
-			$(COMMON_PATH)/cfg.o
+			$(COMMON_PATH)/cfg.o \
+			$(COMMON_PATH)/content_store.o \
+			$(COMMON_PATH)/chunk_store.o \
+			$(COMMON_PATH)/md5.o
 	$(CC) $^ -o $@ $(LIBS)
 
 # 图床分享图片功能
@@ -171,7 +182,10 @@ $(chunk_init):	$(CGI_SRC_PATH)/chunk_init_cgi.o \
 			$(COMMON_PATH)/cJSON.o \
 			$(COMMON_PATH)/deal_mysql.o \
 			$(COMMON_PATH)/redis_op.o  \
-			$(COMMON_PATH)/cfg.o
+			$(COMMON_PATH)/cfg.o \
+			$(COMMON_PATH)/content_store.o \
+			$(COMMON_PATH)/chunk_store.o \
+			$(COMMON_PATH)/md5.o
 	$(CC) $^ -o $@ $(LIBS)
 # 分片上传
 $(chunk_upload):	$(CGI_SRC_PATH)/chunk_upload_cgi.o \
@@ -180,7 +194,10 @@ $(chunk_upload):	$(CGI_SRC_PATH)/chunk_upload_cgi.o \
 			$(COMMON_PATH)/cJSON.o \
 			$(COMMON_PATH)/deal_mysql.o \
 			$(COMMON_PATH)/redis_op.o  \
-			$(COMMON_PATH)/cfg.o
+			$(COMMON_PATH)/cfg.o \
+			$(COMMON_PATH)/content_store.o \
+			$(COMMON_PATH)/chunk_store.o \
+			$(COMMON_PATH)/md5.o
 	$(CC) $^ -o $@ $(LIBS)
 # 分片合并
 $(chunk_merge):	$(CGI_SRC_PATH)/chunk_merge_cgi.o \
@@ -189,7 +206,10 @@ $(chunk_merge):	$(CGI_SRC_PATH)/chunk_merge_cgi.o \
 			$(COMMON_PATH)/cJSON.o \
 			$(COMMON_PATH)/deal_mysql.o \
 			$(COMMON_PATH)/redis_op.o  \
-			$(COMMON_PATH)/cfg.o
+			$(COMMON_PATH)/cfg.o \
+			$(COMMON_PATH)/content_store.o \
+			$(COMMON_PATH)/chunk_store.o \
+			$(COMMON_PATH)/md5.o
 	$(CC) $^ -o $@ $(LIBS)
 # AI 智能检索（C++ 编译）
 $(CGI_SRC_PATH)/ai_cgi.o: $(CGI_SRC_PATH)/ai_cgi.cpp
@@ -228,3 +248,8 @@ clean:
 # 声明伪文件
 .PHONY:clean ALL
 #######################################################################
+
+# Periodic durable storage cleanup worker (run from the application directory).
+ALL: bin_cgi/storage_gc
+bin_cgi/storage_gc: tools/storage_gc.o common/content_store.o common/deal_mysql.o common/cfg.o common/cJSON.o common/util_cgi.o common/redis_op.o common/make_log.o
+	$(CC) $^ -o $@ $(LIBS)

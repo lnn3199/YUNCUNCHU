@@ -54,6 +54,8 @@ services:
       - "10000-10012:10000-10012"
     volumes:
       - ./nginx_fastdfs/client.conf:/etc/fdfs/client.conf
+      - chunk_data:/tmp/chunks
+      - redis_data:/data/redis
     depends_on:
       tc_mysql:
         condition: service_healthy
@@ -77,3 +79,5 @@ networks:
 volumes:
   fastdfs_data:
   mysql_data:
+  chunk_data:
+  redis_data:

@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # 启动 Redis
-redis-server --daemonize yes
+mkdir -p /data/redis
+redis-server --daemonize yes --appendonly yes --dir /data/redis
 echo "Redis 已启动"
 
 # 等待 Redis 就绪
@@ -56,6 +57,9 @@ mkdir -p /tmp/chunks
 mkdir -p /fastdfs_data_and_log/client
 
 echo "所有 FastCGI 程序已启动"
+
+# Retry physical cleanup independently of user requests.
+(while true; do /app/bin_cgi/storage_gc; sleep 60; done) &
 
 # 保持容器运行
 tail -f /dev/null

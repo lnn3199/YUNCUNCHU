@@ -83,7 +83,7 @@ COPY conf/ /app/conf/
 RUN mkdir -p /app/bin_cgi /app/logs
 
 # 编译项目
-RUN cd /app && make clean && make
+RUN cd /app && make clean && make && make bin_cgi/storage_gc
 
 # 复制启动脚本
 COPY docker/fastcgi_app/start.sh /app/start.sh

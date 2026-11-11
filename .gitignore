@@ -5,6 +5,7 @@ bin_cgi/
 # 日志
 logs/
 *.log
+!reports/optimization/*.log
 
 # 前端构建产物（Docker build 时会重新生成）
 picture_bed/build/

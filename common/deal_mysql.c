@@ -51,8 +51,12 @@ MYSQL* msql_conn(char *user_name, char* passwd, char *db_name)
         return NULL;
     }
 
+	char port_text[16] = {0};
+    get_cfg_value(CFG_PATH, "mysql", "port", port_text);
+    unsigned int mysql_port = *port_text ? (unsigned int)strtoul(port_text, NULL, 10) : 0;
+
 	//mysql_real_connect()尝试与运行在主机上的MySQL数据库引擎建立连接
-	if ( mysql_real_connect(conn, mysql_host, user_name, passwd, db_name, 0, NULL, 0) == NULL)
+	if ( mysql_real_connect(conn, mysql_host, user_name, passwd, db_name, mysql_port, NULL, 0) == NULL)
 	{
         fprintf(stderr, "mysql_conn 失败:Error %u(%s)\n", mysql_errno(conn), mysql_error(conn));
 

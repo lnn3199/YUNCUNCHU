@@ -186,6 +186,12 @@ int get_file_suffix(const char *file_name, char *suffix)
     {
         k++;
         len = q - k;
+        /* Every caller provides SUFFIX_LEN bytes. Long client filenames must
+         * not overwrite the adjacent upload metadata on the stack. */
+        if (len >= SUFFIX_LEN)
+        {
+            len = SUFFIX_LEN - 1;
+        }
 
         if (len != 0)
         {

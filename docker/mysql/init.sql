@@ -12,25 +12,26 @@ USE `yuncunchu`;
 DROP TABLE IF EXISTS `file_info`;
 CREATE TABLE `file_info` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '文件序号，自动递增，主键',
-  `md5` varchar(256) NOT NULL COMMENT '文件md5',
+  `md5` char(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL COMMENT '文件md5',
   `file_id` varchar(256) NOT NULL COMMENT '文件id:/group1/M00/00/00/xxx.png',
   `url` varchar(512) NOT NULL COMMENT '文件url 192.168.52.139:80/group1/M00/00/00/xxx.png',
   `size` bigint(20) DEFAULT '0' COMMENT '文件大小, 以字节为单位',
   `type` varchar(32) DEFAULT '' COMMENT '文件类型： png, zip, mp4……',
   `count` int(11) DEFAULT '0' COMMENT '文件引用计数,默认为1。每增加一个用户拥有此文件，此计数器+1',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_md5` (`md5`(191))
+  UNIQUE KEY `uq_md5` (`md5`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='文件信息表';
 
 DROP TABLE IF EXISTS `share_file_list`;
 CREATE TABLE `share_file_list` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '编号',
   `user` varchar(32) NOT NULL COMMENT '文件所属用户',
-  `md5` varchar(256) NOT NULL COMMENT '文件md5',
-  `file_name` varchar(128) DEFAULT NULL COMMENT '文件名字',
+  `md5` char(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL COMMENT '文件md5',
+  `file_name` varchar(128) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL COMMENT '文件名字',
   `pv` int(11) DEFAULT '1' COMMENT '文件下载量，默认值为1，下载一次加1',
   `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '文件共享时间',
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY idx_share_content_name (`md5`,`file_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='共享文件列表';
 
 DROP TABLE IF EXISTS `share_picture_list`;
@@ -59,12 +60,13 @@ DROP TABLE IF EXISTS `user_file_list`;
 CREATE TABLE `user_file_list` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '编号',
   `user` varchar(32) NOT NULL COMMENT '文件所属用户',
-  `md5` varchar(256) NOT NULL COMMENT '文件md5',
+  `md5` char(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL COMMENT '文件md5',
   `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '文件创建时间',
-  `file_name` varchar(128) DEFAULT NULL COMMENT '文件名字',
+  `file_name` varchar(128) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL COMMENT '文件名字',
   `shared_status` int(11) DEFAULT NULL COMMENT '共享状态, 0为没有共享， 1为共享',
   `pv` int(11) DEFAULT NULL COMMENT '文件下载量，默认值为0，下载一次加1',
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY uq_user_content_name (`user`,`md5`,`file_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户文件列表';
 
 DROP TABLE IF EXISTS `user_info`;
@@ -113,3 +115,10 @@ CREATE TABLE IF NOT EXISTS `user_file_ai_desc` (
   KEY `idx_user_status` (`user`, `status`),
   KEY `idx_user_faiss` (`user`, `faiss_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户级AI文件描述与向量表';
+
+-- Durable outbox for deleting unreferenced / losing physical objects.
+CREATE TABLE IF NOT EXISTS storage_gc (
+ file_id VARCHAR(256) CHARACTER SET ascii COLLATE ascii_bin PRIMARY KEY,
+ created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ attempts INT NOT NULL DEFAULT 0, last_error INT NOT NULL DEFAULT 0
+) ENGINE=InnoDB;
